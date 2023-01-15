@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/product")
@@ -14,6 +15,16 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final IProductService productService;
+
+    @GetMapping
+    public ResponseEntity<List<Product>> getAllProducts(){
+        return new ResponseEntity<>(productService.getAllProducts(),HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getProduct(@PathVariable("id") String id){
+        return new ResponseEntity<>(productService.getProduct(id),HttpStatus.OK);
+    }
 
     @PostMapping("/add")
     public ResponseEntity<Product> addProduct(@RequestBody ProductDTO productDTO){
