@@ -5,5 +5,5 @@ import com.foodshop.productservice.models.Product;
 public interface IProductService {
     Product addProduct(Product product);
     Product updateProduct(Product product,String id);
-
+    String deleteProduct(String id);
 }
