@@ -18,10 +18,18 @@ public class ProductServieImpl implements IProductService{
 
     @Override
     public Product updateProduct(Product updateProduct,String id) {
-        Product product = productRepository.getProductById(id);
+        Product product = productRepository.getProductByIdAndDeleted(id,false);
         updateProduct.setId(id);
         productRepository.delete(product);
         productRepository.save(updateProduct);
         return updateProduct;
+    }
+
+    @Override
+    public String deleteProduct(String id) {
+        Product product = productRepository.getProductByIdAndDeleted(id,false);
+        product.setDeleted(true);
+        updateProduct(product,product.getId());
+        return "Product deleted Successfully";
     }
 }
