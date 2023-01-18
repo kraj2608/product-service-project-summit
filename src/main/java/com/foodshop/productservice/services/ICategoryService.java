@@ -15,4 +15,6 @@ public interface ICategoryService {
     CategoriesResponseDTO getAllCategories();
 
     void checkCategoryNotExistsById(String id) throws CategoryNotFoundException;
+
+    Category getCategoryById(String id);
 }
