@@ -52,7 +52,7 @@ public class ProductServiceImpl implements IProductService{
         return ProductResponseDTO
                 .builder()
                 .product(productRepository.getProductByIdAndDeleted(id,false))
-                .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
+                .message(SuccessMessages.PRODUCT_FETCHED_SUCCESS)
                 .statusCode(HttpStatus.OK.value())
                 .build();
     }
@@ -103,7 +103,7 @@ public class ProductServiceImpl implements IProductService{
         return ProductsResponseDTO
                 .builder()
                 .products(productRepository.searchProductByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndDeleted(text,text,false))
-                .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
+                .message(SuccessMessages.PRODUCT_FETCHED_SUCCESS)
                 .statusCode(HttpStatus.OK.value())
                 .build();
     }
