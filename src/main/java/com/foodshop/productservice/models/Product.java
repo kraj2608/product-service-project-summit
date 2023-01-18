@@ -1,14 +1,18 @@
 package com.foodshop.productservice.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.DocumentReference;
+
 import java.util.List;
 
 
 @Document("products")
 @Data
+@Builder
 public class Product {
 
     @Id
@@ -19,8 +23,18 @@ public class Product {
     private double price;
     private double rating;
 
+    @DocumentReference(lazy = true)
+    private List<Category> categories;
+
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private boolean deleted = false;
 
     private List<String> images;
+
+    @JsonProperty("producer_name")
+    private String producerName;
+
+    @JsonProperty("producer_description")
+    private String producerDescription;
+
 }

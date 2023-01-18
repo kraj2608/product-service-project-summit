@@ -30,6 +30,11 @@ public class CategoryServiceImpl implements ICategoryService{
         }
     }
 
+    @Override
+    public Category getCategoryById(String id){
+        checkCategoryNotExistsById(id);
+        return categoryRepository.getCategoryById(id);
+    }
 
     @Override
     public CategoryResponseDTO addCategory(Category category) throws CategoryAlreadyExistsException {
