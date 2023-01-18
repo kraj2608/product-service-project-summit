@@ -2,6 +2,7 @@ package com.foodshop.productservice.services;
 
 import com.foodshop.productservice.constants.ErrorMessages;
 import com.foodshop.productservice.constants.SuccessMessages;
+import com.foodshop.productservice.dto.ProductResponseDTO;
 import com.foodshop.productservice.dto.ProductsResponseDTO;
 import com.foodshop.productservice.exceptions.ProductNotFoundException;
 import com.foodshop.productservice.models.Category;
@@ -24,51 +25,77 @@ public class ProductServiceImpl implements IProductService{
 
 
     @Override
-    public List<Product> getAllProducts(String categoryId) {
+    public ProductsResponseDTO getAllProducts(String categoryId) {
         if (categoryId == null){
-            return productRepository.findAllByDeleted(false);
+            return ProductsResponseDTO
+                    .builder()
+                    .products(productRepository.findAllByDeleted(false))
+                    .statusCode(HttpStatus.OK.value())
+                    .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
+                    .build();
         }
         List<Category> categories = new ArrayList<>();
         categories.add(categoryService.getCategoryById(categoryId));
-        return productRepository.findAllByCategoriesContainingAndDeleted(categories,false);
+        return ProductsResponseDTO
+                .builder()
+                .products(productRepository.findAllByCategoriesContainingAndDeleted(categories,false))
+                .statusCode(HttpStatus.OK.value())
+                .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
+                .build();
     }
 
     @Override
-    public Product getProduct(String id) throws ProductNotFoundException {
+    public ProductResponseDTO getProduct(String id) throws ProductNotFoundException {
         if (productRepository.getProductByIdAndDeleted(id,false) == null){
             throw new ProductNotFoundException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
-        return productRepository.getProductByIdAndDeleted(id,false);
+        return ProductResponseDTO
+                .builder()
+                .product(productRepository.getProductByIdAndDeleted(id,false))
+                .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .build();
     }
 
     @Override
-    public Product addProduct(Product product) {
+    public ProductResponseDTO addProduct(Product product) {
         product.getCategories().forEach(category -> categoryService.checkCategoryNotExistsById(category.getId()));
-        return productRepository.save(product);
-
+        return ProductResponseDTO
+                .builder()
+                .product(productRepository.save(product))
+                .message(SuccessMessages.PRODUCT_CREATED_SUCCESSFULLY)
+                .statusCode(HttpStatus.CREATED.value())
+                .build();
     }
 
     @Override
-    public Product updateProduct(Product updateProduct,String id) throws ProductNotFoundException {
+    public ProductResponseDTO updateProduct(Product updateProduct,String id) throws ProductNotFoundException {
         Product product = productRepository.getProductByIdAndDeleted(id,false);
         if(product == null){
             throw new ProductNotFoundException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
         updateProduct.setId(id);
-        productRepository.delete(product);
-        productRepository.save(updateProduct);
-        return updateProduct;
+        return ProductResponseDTO
+                .builder()
+                .product(productRepository.save(updateProduct))
+                .message(SuccessMessages.PRODUCT_UPDATED_SUCCESSFULLY)
+                .statusCode(HttpStatus.CREATED.value())
+                .build();
     }
 
     @Override
-    public String deleteProduct(String id) {
+    public ProductResponseDTO deleteProduct(String id) {
         Product product = productRepository.getProductByIdAndDeleted(id,false);
         if(product == null){
             throw new ProductNotFoundException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
         product.setDeleted(true);
-        updateProduct(product,product.getId());
-        return "Product deleted Successfully";
+        return ProductResponseDTO
+                .builder()
+                .product(productRepository.save(product))
+                .statusCode(HttpStatus.CREATED.value())
+                .message(SuccessMessages.PRODUCT_DELETED_SUCCESSFULLY)
+                .build();
     }
 
     private ProductsResponseDTO searchProductsForText(String text){
