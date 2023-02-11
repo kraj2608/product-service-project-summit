@@ -16,7 +16,9 @@ public interface IProductRepository extends MongoRepository<Product,String> {
     @Query(value = "{ 'categories' : {'$all' : [?0] }}")
     List<Product> getProductsContainingCategories(String[] categories);
 
-    List<Product> findAllByCategoriesContainingAndDeleted(List<Category> categories,boolean deleted);
+    List<Product> findAllByCategoriesContainingAndDeleted(List<Category> categories, boolean deleted);
 
     List<Product> searchProductByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndDeleted(String title,String product,boolean deleted);
+
+    List<Product> searchProductByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndCategoriesContainingAndDeleted(String title, String description, List<Category> categories, boolean deleted);
 }
