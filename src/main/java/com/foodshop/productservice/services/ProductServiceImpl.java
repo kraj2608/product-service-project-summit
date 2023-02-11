@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -25,23 +24,28 @@ public class ProductServiceImpl implements IProductService{
 
 
     @Override
-    public ProductsResponseDTO getAllProducts(String categoryId) {
-        if (categoryId == null){
+    public ProductsResponseDTO getAllProducts(String categoryId, String searchText) {
+        if (categoryId == null && searchText == null){
             return ProductsResponseDTO
                     .builder()
                     .products(productRepository.findAllByDeleted(false))
                     .statusCode(HttpStatus.OK.value())
                     .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
                     .build();
+        } else if (categoryId == null){
+            return searchProductsForText(searchText);
+        } else if (searchText == null){
+            List<Category> categories = new ArrayList<>();
+            categories.add(categoryService.getCategoryById(categoryId));
+            return ProductsResponseDTO
+                    .builder()
+                    .products(productRepository.findAllByCategoriesContainingAndDeleted(categories,false))
+                    .statusCode(HttpStatus.OK.value())
+                    .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
+                    .build();
         }
-        List<Category> categories = new ArrayList<>();
-        categories.add(categoryService.getCategoryById(categoryId));
-        return ProductsResponseDTO
-                .builder()
-                .products(productRepository.findAllByCategoriesContainingAndDeleted(categories,false))
-                .statusCode(HttpStatus.OK.value())
-                .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
-                .build();
+        return searchProductsForTextAndCategory(searchText,categoryId);
+
     }
 
     @Override
@@ -109,33 +113,18 @@ public class ProductServiceImpl implements IProductService{
     }
 
     private ProductsResponseDTO searchProductsForTextAndCategory(String text,String categoryId){
-        List<Product> searchedProducts = productRepository
-                .searchProductByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndDeleted(text,text,false);
-        List<Product> matchedProducts = new ArrayList<>();
-        for (Product product:searchedProducts) {
-            List<Category> categories = product.getCategories();
-            for (Category category:categories) {
-                if(Objects.equals(category.getId(), categoryId)){
-                    matchedProducts.add(product);
-                    break;
-                }
-            }
-        }
+        List<Category> categories = new ArrayList<>();
+        categories.add(categoryService.getCategoryById(categoryId));
 
         return ProductsResponseDTO
                 .builder()
-                .products(matchedProducts)
+                .products(productRepository
+                        .searchProductByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndCategoriesContainingAndDeleted(
+                                text,text,categories,false))
                 .statusCode(HttpStatus.OK.value())
                 .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
                 .build();
     }
 
-    @Override
-    public ProductsResponseDTO searchProductsWithTitleAndDescription(String text,String category) {
-        if (category == null){
-            return searchProductsForText(text);
-        }
-        return searchProductsForTextAndCategory(text,category);
 
-    }
 }
