@@ -38,6 +38,8 @@ public class ProductRequestDTO {
     @JsonProperty("producer_description")
     private String producerDescription;
 
+    private List<String> images;
+
     public Product toProduct(){
         return Product
                 .builder()
@@ -48,6 +50,7 @@ public class ProductRequestDTO {
                 .price(price)
                 .producerName(producerName)
                 .producerDescription(producerDescription)
+                .images(images)
                 .build();
     }
 }
