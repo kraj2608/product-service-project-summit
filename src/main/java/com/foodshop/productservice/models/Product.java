@@ -26,8 +26,6 @@ public class Product {
     @DocumentReference(lazy = true)
     private List<Category> categories;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private boolean deleted = false;
 
     private List<String> images;
 

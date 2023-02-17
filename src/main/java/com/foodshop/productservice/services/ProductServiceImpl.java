@@ -25,37 +25,37 @@ public class ProductServiceImpl implements IProductService{
 
     @Override
     public ProductsResponseDTO getAllProducts(String categoryId, String searchText) {
-        if (categoryId == null && searchText == null){
-            return ProductsResponseDTO
-                    .builder()
-                    .products(productRepository.findAllByDeleted(false))
-                    .statusCode(HttpStatus.OK.value())
-                    .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
-                    .build();
-        } else if (categoryId == null){
+        if (categoryId != null && searchText != null){
+            return searchProductsForTextAndCategory(searchText,categoryId);
+        } else if (searchText != null){
             return searchProductsForText(searchText);
-        } else if (searchText == null){
+        } else if (categoryId != null){
             List<Category> categories = new ArrayList<>();
             categories.add(categoryService.getCategoryById(categoryId));
             return ProductsResponseDTO
                     .builder()
-                    .products(productRepository.findAllByCategoriesContainingAndDeleted(categories,false))
+                    .products(productRepository.findAllByCategoriesContaining(categories))
                     .statusCode(HttpStatus.OK.value())
                     .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
                     .build();
         }
-        return searchProductsForTextAndCategory(searchText,categoryId);
+        return ProductsResponseDTO
+                .builder()
+                .products(productRepository.findAll())
+                .statusCode(HttpStatus.OK.value())
+                .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
+                .build();
 
     }
 
     @Override
     public ProductResponseDTO getProduct(String id) throws ProductNotFoundException {
-        if (productRepository.getProductByIdAndDeleted(id,false) == null){
+        if (productRepository.getProductById(id) == null){
             throw new ProductNotFoundException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
         return ProductResponseDTO
                 .builder()
-                .product(productRepository.getProductByIdAndDeleted(id,false))
+                .product(productRepository.getProductById(id))
                 .message(SuccessMessages.PRODUCT_FETCHED_SUCCESS)
                 .statusCode(HttpStatus.OK.value())
                 .build();
@@ -74,7 +74,7 @@ public class ProductServiceImpl implements IProductService{
 
     @Override
     public ProductResponseDTO updateProduct(Product updateProduct,String id) throws ProductNotFoundException {
-        Product product = productRepository.getProductByIdAndDeleted(id,false);
+        Product product = productRepository.getProductById(id);
         if(product == null){
             throw new ProductNotFoundException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
@@ -89,14 +89,14 @@ public class ProductServiceImpl implements IProductService{
 
     @Override
     public ProductResponseDTO deleteProduct(String id) {
-        Product product = productRepository.getProductByIdAndDeleted(id,false);
+        Product product = productRepository.getProductById(id);
         if(product == null){
             throw new ProductNotFoundException(ErrorMessages.PRODUCT_NOT_FOUND);
         }
-        product.setDeleted(true);
+        productRepository.delete(product);
         return ProductResponseDTO
                 .builder()
-                .product(productRepository.save(product))
+                .product(product)
                 .statusCode(HttpStatus.CREATED.value())
                 .message(SuccessMessages.PRODUCT_DELETED_SUCCESSFULLY)
                 .build();
@@ -106,7 +106,7 @@ public class ProductServiceImpl implements IProductService{
 
         return ProductsResponseDTO
                 .builder()
-                .products(productRepository.searchProductByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndDeleted(text,text,false))
+                .products(productRepository.searchProductByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(text,text))
                 .message(SuccessMessages.PRODUCT_FETCHED_SUCCESS)
                 .statusCode(HttpStatus.OK.value())
                 .build();
@@ -115,12 +115,11 @@ public class ProductServiceImpl implements IProductService{
     private ProductsResponseDTO searchProductsForTextAndCategory(String text,String categoryId){
         List<Category> categories = new ArrayList<>();
         categories.add(categoryService.getCategoryById(categoryId));
-
+        List<Product> products = productRepository.findAllByCategoriesContaining(categories);
+        List<Product> searchedProducts = products.stream().filter( item -> item.getTitle().contains(text) || item.getDescription().contains(text)).toList();
         return ProductsResponseDTO
                 .builder()
-                .products(productRepository
-                        .searchProductByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndCategoriesContainingAndDeleted(
-                                text,text,categories,false))
+                .products(searchedProducts)
                 .statusCode(HttpStatus.OK.value())
                 .message(SuccessMessages.PRODUCTS_FETCHED_SUCCESS)
                 .build();
