@@ -1,6 +1,14 @@
 version: "3.1"
 
 services:
+  app:
+    container_name: productservice-api
+    image: product-service:0.0.1
+    build: ./
+    ports:
+      - '8002:8002'
+    depends_on:
+      - mongo
   mongo:
     image: mongo
     restart: always
